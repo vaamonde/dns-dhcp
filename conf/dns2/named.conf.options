@@ -1,0 +1,206 @@
+// Autor: Robson Vaamonde
+// Site: www.procedimentosemti.com.br
+// Facebook: facebook.com/ProcedimentosEmTI
+// Facebook: facebook.com/BoraParaPratica
+// YouTube: youtube.com/BoraParaPratica
+// Linkedin: https://www.linkedin.com/in/robson-vaamonde-0b029028/
+// Instagram: https://www.instagram.com/procedimentoem/?hl=pt-br
+// Data de criação: 23/12/2023
+// Data de atualização: 23/12/2023
+// Versão: 0.01
+// Testado e homologado para a versão do Ubuntu Server 22.04.x LTS x64
+// Testado e homologado para a versão do Bind9 DNS Server v9.16.x
+
+// Configuração das opções do Bind9 DNS Server.
+options {
+
+	// Diretório padrão do cache do Bind9 DNS Server.
+	directory "/var/cache/bind";
+	
+	// Diretório e arquivo das estatística do Bind9 DNS Server.
+	statistics-file "/var/log/named/named.stats";
+	zone-statistics yes;
+
+	// Endereços IPv4 de encaminhamento para servidores de DNS externos.
+		8.8.8.8;
+		8.8.4.4;
+	};
+
+	// Número da porta de conexão do Bind9 DNS Server e Endereço IPv4 liberado.
+	listen-on port 53 { 
+		127.0.0.1; 
+		172.16.1.10; 
+	};
+
+	// Configuração do Protocolo IPv6 no Bind9 DNS Server (serviço desabilitado).
+	//listen-on-v6 { 
+	//	any; 
+	//};
+
+	// Ativando a recursividade de consultas no servidor Bind9 DNS autoritativo.
+	recursion yes;
+
+	// Ocultar o número da versão do servidor Bind9 DNS por razão de segurança.
+	version none;
+
+	// Ocultar a identificação do servidor Bind9 DNS Server nas consultas por razão de segurança.
+	server-id none;
+	
+	// Habilitar o Log de consulta do servidor Bind9 DNS Server.
+	querylog yes;
+
+	// Desabilitar as consultas recursivas conforme RFC1035 (bit AA é sempre definido nas respostas NXDOMAIN)
+	auth-nxdomain no;
+
+	// Configuração da quantidade máxima de memória de dados utilizado pelo Bind9 DNS Server.
+	datasize default;
+
+	// Desativando todas as Zonas Vazias (padrão é ativado) do Bind9 DNS Server.
+	empty-zones-enable no;
+
+	// Liberação das consultas e atualizações padrão do Bind9 DNS Server.
+	allow-query {
+		any;
+	};
+
+	allow-query-cache {
+		any;
+	};
+	
+	allow-recursion {
+		any;
+	};
+	
+	allow-update {
+		any;
+	};
+	
+	allow-transfer {
+		any;
+	};	
+};
+
+// Configuração da auditoria de Logs do Bind9 DNS Server, informações serão enviadas para Syslog
+// e também para os arquivos de Log de cada canal corresponde a sua configuração do Bind9 DNS Server.
+logging {
+	channel default_log {
+		file "/var/log/named/default" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel auth_servers_log {
+		file "/var/log/named/auth_servers" versions 100 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel dnssec_log {
+		file "/var/log/named/dnssec" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel zone_transfers_log {
+		file "/var/log/named/zone_transfers" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel ddns_log {
+		file "/var/log/named/ddns" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel client_security_log {
+		file "/var/log/named/client_security" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel rate_limiting_log {
+		file "/var/log/named/rate_limiting" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel rpz_log {
+		file "/var/log/named/rpz" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel dnstap_log {
+		file "/var/log/named/dnstap" versions 3 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel queries_log {
+		file "/var/log/named/queries" versions 600 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity info;
+	};
+	channel query-errors_log {
+		file "/var/log/named/query-errors" versions 5 size 20m;
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		severity dynamic;
+	};
+	channel default_syslog {
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		syslog daemon;
+		severity info;
+	};
+	channel default_debug {
+		print-time yes;
+		print-category yes;
+		print-severity yes;
+		file "named.run";
+		severity dynamic;
+	};
+
+	// Configuração das categorias de Log's que serão enviadas para os arquivos de cada canal
+	category default { default_syslog; default_debug; default_log; };
+	category config { default_syslog; default_debug; default_log; };
+	category dispatch { default_syslog; default_debug; default_log; };
+	category network { default_syslog; default_debug; default_log; };
+	category general { default_syslog; default_debug; default_log; };
+	category zoneload { default_syslog; default_debug; default_log; };
+	category resolver { auth_servers_log; default_debug; };
+	category cname { auth_servers_log; default_debug; };
+	category delegation-only { auth_servers_log; default_debug; };
+	category lame-servers { auth_servers_log; default_debug; };
+	category edns-disabled { auth_servers_log; default_debug; };
+	category dnssec { dnssec_log; default_debug; };
+	category notify { zone_transfers_log; default_debug; };
+	category xfer-in { zone_transfers_log; default_debug; };
+	category xfer-out { zone_transfers_log; default_debug; };
+	category update{ ddns_log; default_debug; };
+	category update-security { ddns_log; default_debug; };
+	category client{ client_security_log; default_debug; };
+	category security { client_security_log; default_debug; };
+	category rate-limit { rate_limiting_log; default_debug; };
+	category spill { rate_limiting_log; default_debug; };
+	category database { rate_limiting_log; default_debug; };
+	category rpz { rpz_log; default_debug; };
+	category dnstap { dnstap_log; default_debug; };
+	category trust-anchor-telemetry { default_syslog; default_debug; default_log; };
+	category queries { queries_log; };
+	category query-errors {query-errors_log; };
+};
